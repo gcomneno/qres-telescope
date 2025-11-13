@@ -4,10 +4,9 @@ import argparse
 from typing import List
 
 from .core import Lens, SpectralMap
-from .ghost_energy import find_sum_invariants
+from .ghost_energy import find_sum_invariants, search_linear_invariants
 from .isoforms import find_isoforms
-from .viz_ascii import print_ghosts, print_isoforms
-
+from .viz_ascii import print_ghosts, print_isoforms, print_linear_ghosts
 
 def _parse_mods(mods: List[str]) -> List[int]:
     if not mods:
@@ -17,14 +16,12 @@ def _parse_mods(mods: List[str]) -> List[int]:
     except ValueError as exc:
         raise ValueError("Tutti i moduli devono essere interi.") from exc
 
-
 def _build_spectral_map_from_args(args: argparse.Namespace) -> SpectralMap:
     moduli = _parse_mods(args.mods)
     lens = Lens(tuple(moduli))
     smap = SpectralMap(lens)
     smap.build_from_range(args.start, args.end)
     return smap
-
 
 def main(argv: List[str] | None = None) -> None:
     parser = argparse.ArgumentParser(
@@ -66,7 +63,7 @@ def main(argv: List[str] | None = None) -> None:
         help="Dimensione minima del cluster (default: 2).",
     )
 
-    # subcomando ghost
+    # subcomando ghost (somma residui)
     ghost_parser = subparsers.add_parser(
         "ghost",
         help="Cerca cluster di ghost energy (somma dei residui costante).",
@@ -79,6 +76,25 @@ def main(argv: List[str] | None = None) -> None:
         help="Dimensione minima del cluster (default: 3).",
     )
 
+    # subcomando ghost-lin (invarianti lineari)
+    ghost_lin_parser = subparsers.add_parser(
+        "ghost-lin",
+        help="Cerca invarianti lineari L(vec) = a·r con ai piccoli.",
+    )
+    add_common_arguments(ghost_lin_parser)
+    ghost_lin_parser.add_argument(
+        "--min-cluster",
+        type=int,
+        default=5,
+        help="Dimensione minima del cluster (default: 5).",
+    )
+    ghost_lin_parser.add_argument(
+        "--max-coeff",
+        type=int,
+        default=2,
+        help="Valore massimo in modulo dei coefficienti (default: 2).",
+    )
+
     args = parser.parse_args(argv)
 
     smap = _build_spectral_map_from_args(args)
@@ -86,8 +102,18 @@ def main(argv: List[str] | None = None) -> None:
     if args.mode == "iso":
         clusters = find_isoforms(smap.mapping, min_size=args.min_cluster)
         print_isoforms(clusters)
+
     elif args.mode == "ghost":
         clusters = find_sum_invariants(smap.mapping, min_cluster=args.min_cluster)
         print_ghosts(clusters)
+
+    elif args.mode == "ghost-lin":
+        clusters = search_linear_invariants(
+            smap.mapping,
+            max_coeff=args.max_coeff,
+            min_cluster=args.min_cluster,
+        )
+        print_linear_ghosts(clusters)
+
     else:
         parser.error(f"Modalità sconosciuta: {args.mode}")
