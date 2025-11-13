@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "qres-telescope"
+version = "0.1.0"
+description = "Quantum-Residue Telescope: analizzatore di pattern modulari (isoforme e ghost energy)."
+authors = [
+  { name = "Giancarlo" }
+]
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Intended Audience :: Science/Research",
+  "Topic :: Scientific/Engineering :: Mathematics",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/gcomneno/qres-telescope"
+"Source" = "https://github.com/gcomneno/qres-telescope"
